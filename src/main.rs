@@ -10,7 +10,7 @@ use std::{
     io::{self, Read, Write},
     panic::PanicInfo,
     path::{self, Path},
-    process::Command,
+    process::{Command, exit},
 };
 
 extern crate chrono;
@@ -20,6 +20,11 @@ extern crate scraper;
 extern crate sevenz_rust;
 extern crate tokio;
 extern crate trauma;
+use webbrowser;
+use const_format::concatcp;
+
+const VERSION: &str = "rev 2";
+const SAUCE: &str = "https://github.com/zulc22/8.2Updater-next";
 
 // from https://users.rust-lang.org/t/rusts-equivalent-of-cs-system-pause/4494/4
 fn pause() {
@@ -63,15 +68,14 @@ async fn updategm82_as(url: &str, p: &Path, update: &str) {
         .await;
     println!("Extracting...");
     sevenz_rust::decompress_file(p.join("gm82.7z"), p.join("gm82")).expect("unable to extract");
+    fs::remove_file(p.join("gm82.7z")).expect("Could not delete temporary downloaded .7z file.");
     println!("Installing...");
     Command::new("cmd.exe")
         .args([
             "/c",
-            "cd",
-            p.join("gm82").to_str().unwrap(),
-            "&",
             "install.bat",
         ])
+        .current_dir(p.join("gm82").to_str().unwrap())
         .spawn()
         .expect("failed to run installer")
         .wait()
@@ -95,7 +99,7 @@ fn startgm82() {
 
 fn main() {
     std::panic::set_hook(Box::new(|info| panicfunc(info)));
-    println!("8.2Updater-next, rev 1\nzulc22 2023");
+    println!("8.2Updater-next {}\nzulc22 2023", VERSION);
 
     let configdir: ProjectDirs =
         ProjectDirs::from("com", "zulc22", "8.2Updater-next").expect("couldn't get projectdir");
@@ -118,6 +122,21 @@ fn main() {
         println!("{last_update}")
     } else {
         println!("N/A (unknown)");
+    }
+
+    print!("\nChecking if 8.2Updater is up to date... ");
+
+    let curver: String = get_body(concatcp!(SAUCE, "/raw/main/curver.txt"));
+    if curver != VERSION {
+        println!("✕\n8.2Updater is out of date. We have opened GameMaker 8.2, and also opened the GitHub page for the updater, in your browser.");
+        startgm82();
+        if webbrowser::open(SAUCE).is_err() {
+            println!("The browser could not be opened. Please manually visit:\n{}", SAUCE);
+        }
+        pause();
+        exit(0);
+    } else {
+        print!("✓");
     }
 
     println!("\nConnecting to Mediafire...");

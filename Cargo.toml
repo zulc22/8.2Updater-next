@@ -14,3 +14,5 @@ scraper = "0.16.0"
 tokio = "1.28.2"
 trauma = "2"
 sevenz-rust={version="0.2.9"}
+webbrowser = "0.8.11"
+const_format = "0.2.31"
