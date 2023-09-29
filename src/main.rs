@@ -126,7 +126,7 @@ fn main() {
 
     print!("\nChecking if 8.2Updater is up to date... ");
 
-    let curver: String = get_body(concatcp!(SAUCE, "/raw/main/curver.txt"));
+    let curver: String = get_body(concatcp!(SAUCE, "/raw/master/curver.txt"));
     if curver != VERSION {
         println!("✕\n8.2Updater is out of date. We have opened GameMaker 8.2, and also opened the GitHub page for the updater, in your browser.");
         startgm82();
